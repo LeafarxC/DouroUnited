@@ -109,27 +109,27 @@ export function PlayerCard({
         </div>
 
         {/* Coluna das informações */}
-        <div className="flex-1 min-w-0 ml-8">
+        <div className="flex-1 min-w-0 ml-4 md:ml-8">
           {/* Cabeçalho com nome */}
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 leading-none mb-1">
+          <div className="mb-2 md:mb-4">
+            <h3 className="text-base md:text-lg font-semibold text-gray-900 leading-none mb-1">
               {player.name}
             </h3>
             {player.nickname && (
-              <p className="text-sm text-gray-500 font-medium">
+              <p className="text-xs md:text-sm text-gray-500 font-medium">
                 "{player.nickname}"
               </p>
             )}
           </div>
 
           {/* Status e Posições */}
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="flex gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1.5 md:gap-2.5 mb-2 md:mb-4">
+            <div className="flex gap-1 flex-wrap">
               {positions.map((pos, index) => (
                 <Badge 
                   key={index}
                   className={`${positionAbbreviations[pos]?.color || 'bg-gray-500'} 
-                    text-[11px] font-medium px-2.5 py-0.5 rounded-full`}
+                    text-[10px] md:text-[11px] font-medium px-2 py-0.5 rounded-full`}
                 >
                   {positionAbbreviations[pos]?.abbr || pos}
                 </Badge>
@@ -137,26 +137,24 @@ export function PlayerCard({
             </div>
             <Badge 
               variant="secondary" 
-              className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full ${getStatusColor()}`}
+              className={`text-[10px] md:text-[11px] font-medium px-2 py-0.5 rounded-full ${getStatusColor()}`}
             >
               {player.is_active ? 'Ativo' : 'Inativo'}
             </Badge>
           </div>
 
           {/* Estatísticas */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-gray-50 rounded-xl p-2.5">
+          <div className="grid grid-cols-2 gap-2 md:gap-3">
+            <div className="bg-gray-50 rounded-xl p-2">
               <div className="flex items-center justify-between">
-                <p className="text-xs uppercase tracking-wider font-medium text-gray-500">Jogos</p>
+                <p className="text-[10px] md:text-xs uppercase tracking-wider font-medium text-gray-500">Jogos</p>
                 <p className="text-sm font-bold text-gray-900">{player.total_games}</p>
               </div>
             </div>
-            <div className="bg-gray-50 rounded-xl p-2.5">
+            <div className="bg-gray-50 rounded-xl p-2">
               <div className="flex items-center justify-between">
-                <p className="text-xs uppercase tracking-wider font-medium text-gray-500">Presença</p>
-                <p className={`text-sm font-bold ${getAttendanceColor()}`}>
-                  {attendanceRate}%
-                </p>
+                <p className="text-[10px] md:text-xs uppercase tracking-wider font-medium text-gray-500">Presença</p>
+                <p className={`text-sm font-bold ${getAttendanceColor()} ${attendanceRate === 0 ? 'text-gray-500' : ''}`}>{attendanceRate}%</p>
               </div>
             </div>
           </div>

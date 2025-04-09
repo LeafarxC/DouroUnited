@@ -17,9 +17,9 @@ const Navbar = () => {
           {/* Logo Douro United */}
           <Link to="/" className="flex items-center">
             <img 
-              src="/Douro_United.png" 
+              src="/Dourounited2.png" 
               alt="Douro United" 
-              className="h-16 w-auto md:h-20 mr-2" 
+              className="h-20 w-auto md:h-24 mr-2" 
             />
             <span className="text-black font-bold text-xl md:text-2xl">Douro United</span>
           </Link>

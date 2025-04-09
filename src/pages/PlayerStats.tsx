@@ -181,10 +181,10 @@ export default function PlayerStats() {
                         <TableCell className="hidden sm:table-cell">
                           <Badge variant="outline">{player.position}</Badge>
                         </TableCell>
-                        <TableCell className="font-bold">{player.appearances}</TableCell>
-                        <TableCell className="hidden md:table-cell text-green-600">{player.wins}</TableCell>
-                        <TableCell className="hidden md:table-cell text-yellow-600">{player.draws}</TableCell>
-                        <TableCell className="hidden md:table-cell text-red-600">{player.losses}</TableCell>
+                        <TableCell className="font-bold text-center">{player.appearances}</TableCell>
+                        <TableCell className="hidden md:table-cell text-center text-green-600">{player.wins}</TableCell>
+                        <TableCell className="hidden md:table-cell text-center text-yellow-600">{player.draws}</TableCell>
+                        <TableCell className="hidden md:table-cell text-center text-red-600">{player.losses}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
