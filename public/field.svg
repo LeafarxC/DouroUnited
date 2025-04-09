@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="533" viewBox="0 0 800 533" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fundo do campo -->
+  <rect width="800" height="533" fill="#2E7D32"/>
+  
+  <!-- Linhas do campo -->
+  <g stroke="#FFFFFF" stroke-width="2">
+    <!-- Borda do campo -->
+    <rect x="20" y="20" width="760" height="493" />
+    
+    <!-- Linha central -->
+    <line x1="400" y1="20" x2="400" y2="513" />
+    <circle cx="400" cy="266.5" r="50" fill="none" />
+    <circle cx="400" cy="266.5" r="2" fill="#FFFFFF" />
+    
+    <!-- Área de gol esquerda -->
+    <rect x="20" y="183.5" width="60" height="166" />
+    <rect x="20" y="133.5" width="120" height="266" />
+    <circle cx="100" cy="266.5" r="2" fill="#FFFFFF" />
+    <path d="M 20 266.5 A 50 50 0 0 1 70 266.5" fill="none" />
+    
+    <!-- Área de gol direita -->
+    <rect x="720" y="183.5" width="60" height="166" />
+    <rect x="660" y="133.5" width="120" height="266" />
+    <circle cx="700" cy="266.5" r="2" fill="#FFFFFF" />
+    <path d="M 780 266.5 A 50 50 0 0 0 730 266.5" fill="none" />
+    
+    <!-- Cantos -->
+    <path d="M 20 20 A 10 10 0 0 1 30 30" fill="none" />
+    <path d="M 780 20 A 10 10 0 0 0 770 30" fill="none" />
+    <path d="M 20 513 A 10 10 0 0 0 30 503" fill="none" />
+    <path d="M 780 513 A 10 10 0 0 1 770 503" fill="none" />
+  </g>
+  
+  <!-- Padrão de grama -->
+  <pattern id="grass" patternUnits="userSpaceOnUse" width="20" height="20" patternTransform="rotate(45)">
+    <line x1="0" y1="0" x2="0" y2="20" stroke="#1B5E20" stroke-width="10" opacity="0.1"/>
+  </pattern>
+  <rect width="800" height="533" fill="url(#grass)"/>
+</svg> 

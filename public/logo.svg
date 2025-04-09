@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Círculo externo -->
+  <circle cx="50" cy="50" r="48" fill="none" stroke="black" stroke-width="2"/>
+  
+  <!-- Círculo interno -->
+  <circle cx="50" cy="50" r="44" fill="none" stroke="black" stroke-width="1"/>
+  
+  <!-- Texto "IF" -->
+  <text x="50" y="50" text-anchor="middle" dominant-baseline="middle" 
+        font-family="Arial Black, sans-serif" font-size="36" font-weight="900"
+        fill="black">
+    IF
+  </text>
+  
+  <!-- Texto "Os Intocáveis" em arco superior -->
+  <path id="textPathTop" d="M 15,50 A 35,35 0 0 1 85,50" fill="none"/>
+  <text font-family="Arial, sans-serif" font-size="12" font-weight="bold">
+    <textPath href="#textPathTop" startOffset="50%" text-anchor="middle">
+      OS INTOCÁVEIS
+    </textPath>
+  </text>
+  
+  <!-- Texto "Futebol Clube" em arco inferior -->
+  <path id="textPathBottom" d="M 15,50 A 35,35 0 0 0 85,50" fill="none"/>
+  <text font-family="Arial, sans-serif" font-size="12" font-weight="bold">
+    <textPath href="#textPathBottom" startOffset="50%" text-anchor="middle">
+      FUTEBOL CLUBE
+    </textPath>
+  </text>
+</svg> 
