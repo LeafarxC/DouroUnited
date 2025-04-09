@@ -151,12 +151,6 @@ export function PlayerCard({
                 <p className="text-sm font-bold text-gray-900">{player.total_games}</p>
               </div>
             </div>
-            <div className="bg-gray-50 rounded-xl p-2">
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] md:text-xs uppercase tracking-wider font-medium text-gray-500">Presença</p>
-                <p className={`text-sm font-bold ${getAttendanceColor()} ${attendanceRate === 0 ? 'text-gray-500' : ''}`}>{attendanceRate}%</p>
-              </div>
-            </div>
           </div>
 
           {/* Histórico de presença */}
