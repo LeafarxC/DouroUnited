@@ -75,32 +75,16 @@ export function MatchProvider({ children }: { children: ReactNode }) {
 
   const updateMatch = async (id: string | number, match: Partial<Game>): Promise<Game> => {
     try {
-      const numericMatchId = parseInt(id.toString());
+      const numericMatchId = typeof id === 'string' ? parseInt(id) : id;
       const currentMatch = matches.find(m => m.id === numericMatchId);
+      
       if (!currentMatch) {
         throw new Error('Jogo não encontrado');
       }
 
-      // Mantém todos os dados existentes e atualiza apenas os campos fornecidos
-      const updateData: Partial<Game> = {
-        ...currentMatch,
-        ...match,
-        selected_players: Array.isArray(match.selected_players) 
-          ? match.selected_players.map(Number)
-          : currentMatch.selected_players,
-        teamA: Array.isArray(match.teamA) 
-          ? match.teamA.map(Number)
-          : currentMatch.teamA,
-        teamB: Array.isArray(match.teamB) 
-          ? match.teamB.map(Number)
-          : currentMatch.teamB,
-        scoreA: typeof match.scoreA === 'number' ? match.scoreA : currentMatch.scoreA,
-        scoreB: typeof match.scoreB === 'number' ? match.scoreB : currentMatch.scoreB
-      };
-
       // Atualiza o jogo no banco de dados
-      const updatedGame = await gamesApi.update(id, updateData);
-
+      const updatedGame = await gamesApi.update(numericMatchId, match);
+      
       // Cria o objeto atualizado mantendo todos os dados
       const fullUpdatedMatch: Game = {
         id: updatedGame.id,
@@ -124,9 +108,16 @@ export function MatchProvider({ children }: { children: ReactNode }) {
       };
 
       // Atualiza o estado local imediatamente
-      setMatches(prevMatches => 
-        prevMatches.map(m => m.id === numericMatchId ? fullUpdatedMatch : m)
-      );
+      setMatches(prevMatches => {
+        const newMatches = prevMatches.map(m => 
+          m.id === numericMatchId ? fullUpdatedMatch : m
+        );
+        console.log('Estado dos jogos atualizado:', {
+          jogo: numericMatchId,
+          jogadoresConfirmados: fullUpdatedMatch.selected_players
+        });
+        return newMatches;
+      });
 
       // Atualiza o jogo atual se necessário
       if (currentGame?.id === numericMatchId) {
@@ -204,21 +195,30 @@ export function MatchProvider({ children }: { children: ReactNode }) {
       // Atualiza o estado local imediatamente
       setMatches(prevMatches => {
         const newMatches = prevMatches.map(m => 
-          m.id === numericMatchId ? updatedGame : m
+          m.id === numericMatchId ? {
+            ...m,
+            selected_players: updatedPlayers
+          } : m
         );
         console.log('Estado dos jogos atualizado:', {
           jogo: numericMatchId,
-          jogadoresConfirmados: updatedGame.selected_players
+          jogadoresConfirmados: updatedPlayers
         });
         return newMatches;
       });
 
       // Atualiza o jogo atual se necessário
       if (currentGame?.id === numericMatchId) {
-        setCurrentGame(updatedGame);
+        setCurrentGame({
+          ...currentGame,
+          selected_players: updatedPlayers
+        });
       }
 
-      return updatedGame;
+      return {
+        ...match,
+        selected_players: updatedPlayers
+      };
     } catch (error) {
       console.error('Erro ao confirmar/remover jogador:', error);
       throw error;

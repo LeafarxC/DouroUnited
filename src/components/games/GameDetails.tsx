@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, MapPin, X, Check, Share2, MessageSquare } from 'lucide-react';
-import { Game, Player, gamesApi, Team, teamsApi } from '@/lib/supabase';
+import { Game, Player, gamesApi, Team as SupabaseTeam, teamsApi } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useMatches } from '@/context/MatchContext';
 import {
@@ -61,7 +61,7 @@ export function GameDetails({ game, players, onClose }: GameDetailsProps) {
   const { toast } = useToast();
   const { updateMatch, togglePlayerConfirmation, matches, setCurrentGame, refreshMatches } = useMatches();
   const [isEditing, setIsEditing] = useState(false);
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [teams, setTeams] = useState<SupabaseTeam[]>([]);
   const [editedGame, setEditedGame] = useState({
     title: game.title,
     date: game.date,
@@ -82,14 +82,15 @@ export function GameDetails({ game, players, onClose }: GameDetailsProps) {
     : 0;
 
   // Função para verificar se um jogador está confirmado
-  const isPlayerConfirmed = (playerId: string | number) => {
-    const playerIdNumber = Number(playerId);
-    const isConfirmed = Array.isArray(currentGame.selected_players) && 
-                       currentGame.selected_players.map(Number).includes(playerIdNumber);
+  const isPlayerConfirmed = (playerId: number) => {
+    const selectedPlayers = Array.isArray(currentGame.selected_players) 
+      ? currentGame.selected_players.map(id => Number(id))
+      : [];
+    const isConfirmed = selectedPlayers.includes(playerId);
     console.log('Verificando confirmação:', {
-      jogador: playerIdNumber,
+      jogador: playerId,
       confirmado: isConfirmed,
-      jogadoresConfirmados: currentGame.selected_players
+      jogadoresConfirmados: selectedPlayers
     });
     return isConfirmed;
   };
@@ -100,7 +101,17 @@ export function GameDetails({ game, players, onClose }: GameDetailsProps) {
       const playerName = players.find(p => p.id === playerIdNumber)?.name;
       const wasConfirmed = isPlayerConfirmed(playerIdNumber);
 
-      await togglePlayerConfirmation(game.id.toString(), playerIdNumber);
+      // Garantir que o ID do jogo seja uma string
+      const gameIdString = game.id.toString();
+      
+      const updatedGame = await togglePlayerConfirmation(gameIdString, playerId);
+
+      // Atualizar o estado local
+      setCurrentGame(updatedGame);
+      setEditedGame({
+        ...editedGame,
+        selected_players: updatedGame.selected_players || []
+      });
 
       toast({
         title: wasConfirmed ? 'Jogador removido' : 'Jogador confirmado',
@@ -121,26 +132,74 @@ export function GameDetails({ game, players, onClose }: GameDetailsProps) {
   // Atualiza os dados quando o componente é montado
   useEffect(() => {
     const loadInitialData = async () => {
-      await refreshMatches();
-      const updatedGame = matches.find(m => m.id === game.id);
-      if (updatedGame) {
-        console.log('Jogo atualizado:', {
-          id: updatedGame.id,
-          jogadoresConfirmados: updatedGame.selected_players
+      try {
+        console.log('Iniciando carregamento do jogo:', {
+          id: game.id,
+          titulo: game.title
         });
-        setCurrentGame(updatedGame);
+
+        // Atualiza a lista de jogos
+        await refreshMatches();
+        
+        // Busca o jogo mais recente
+        const updatedGame = matches.find(m => m.id === game.id);
+        
+        if (updatedGame) {
+          console.log('Jogo atualizado:', {
+            id: updatedGame.id,
+            titulo: updatedGame.title,
+            jogadoresConfirmados: updatedGame.selected_players
+          });
+          
+          // Atualiza o estado local
+          setEditedGame({
+            title: updatedGame.title,
+            date: updatedGame.date,
+            time: updatedGame.time,
+            location: updatedGame.location,
+            selected_players: Array.isArray(updatedGame.selected_players) 
+              ? [...updatedGame.selected_players]
+              : []
+          });
+          
+          // Atualiza o jogo atual no contexto
+          setCurrentGame(updatedGame);
+          
+          // Carregar as equipas se existirem
+          if (updatedGame.teamA?.length > 0 || updatedGame.teamB?.length > 0) {
+            const gameId = typeof updatedGame.id === 'string' ? parseInt(updatedGame.id) : updatedGame.id;
+            await loadTeams(gameId);
+          }
+        } else {
+          console.warn('Jogo não encontrado após atualização:', game.id);
+          toast({
+            title: 'Aviso',
+            description: 'Não foi possível carregar os dados mais recentes do jogo.',
+            variant: 'destructive',
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados iniciais:', error);
+        toast({
+          title: 'Erro',
+          description: 'Ocorreu um erro ao carregar os dados do jogo. Tente novamente.',
+          variant: 'destructive',
+        });
       }
     };
+    
     loadInitialData();
-  }, []);
+  }, [game.id, matches, refreshMatches]);
 
   // Atualiza o estado local quando o jogo muda
   useEffect(() => {
     if (currentGame) {
-      console.log('Estado atual do jogo:', {
+      console.log('Atualizando estado local do jogo:', {
         id: currentGame.id,
+        titulo: currentGame.title,
         jogadoresConfirmados: currentGame.selected_players
       });
+      
       setEditedGame({
         title: currentGame.title,
         date: currentGame.date,
@@ -150,22 +209,33 @@ export function GameDetails({ game, players, onClose }: GameDetailsProps) {
           ? [...currentGame.selected_players]
           : []
       });
+
+      // Carregar as equipas se existirem
+      if (currentGame.teamA?.length > 0 || currentGame.teamB?.length > 0) {
+        const gameId = typeof currentGame.id === 'string' ? parseInt(currentGame.id) : currentGame.id;
+        loadTeams(gameId);
+      }
     }
   }, [currentGame]);
 
-  // Carregar as equipas do jogo
-  useEffect(() => {
-    const loadTeams = async () => {
-      try {
-        const gameTeams = await teamsApi.getByGame(game.id);
-        setTeams(gameTeams);
-      } catch (error) {
-        console.error('Erro ao carregar equipas:', error);
+  // Função para carregar as equipas do jogo
+  const loadTeams = async (gameId: number) => {
+    try {
+      console.log('Carregando equipas para o jogo:', gameId);
+      const teams = await teamsApi.getByGameId(gameId);
+      console.log('Equipas carregadas:', teams);
+      if (teams && teams.length >= 2) {
+        setTeams(teams);
       }
-    };
-
-    loadTeams();
-  }, [game.id]);
+    } catch (error) {
+      console.error('Erro ao carregar equipas:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar as equipas. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   // Estilos para jogadores confirmados
   const playerCardStyles = (isSelected: boolean) => `
@@ -227,7 +297,7 @@ export function GameDetails({ game, players, onClose }: GameDetailsProps) {
   };
 
   const formatMessage = () => {
-    const selectedPlayers = players.filter(player => currentGame.selected_players?.includes(player.id.toString()));
+    const selectedPlayers = players.filter(player => currentGame.selected_players?.includes(Number(player.id)));
     const goalkeepers = selectedPlayers.filter(p => p.position.includes('Guarda-Redes'));
     const fieldPlayers = selectedPlayers.filter(p => !p.position.includes('Guarda-Redes'));
     
@@ -243,7 +313,7 @@ export function GameDetails({ game, players, onClose }: GameDetailsProps) {
   };
 
   const handleShareWhatsApp = () => {
-    const selectedPlayers = players.filter(player => currentGame.selected_players?.includes(player.id.toString()));
+    const selectedPlayers = players.filter(player => currentGame.selected_players?.includes(Number(player.id)));
     const message = `${currentGame.title}\n\n` +
       `Data: ${format(new Date(currentGame.date), "EEEE, dd 'de' MMMM", { locale: ptBR })}\n` +
       `Hora: ${currentGame.time}\n` +
@@ -311,7 +381,13 @@ export function GameDetails({ game, players, onClose }: GameDetailsProps) {
                         is_confirmed: true,
                         selected_players: currentGame.selected_players
                       });
+                      
+                      // Atualiza o estado local
                       setCurrentGame(updatedGame);
+                      setEditedGame({
+                        ...editedGame,
+                        selected_players: updatedGame.selected_players
+                      });
 
                       toast({
                         title: "Sucesso",
@@ -429,11 +505,6 @@ export function GameDetails({ game, players, onClose }: GameDetailsProps) {
                         <h3 className="text-xl font-semibold">{team.name}</h3>
                         <div className="flex items-center space-x-2">
                           <span className="text-lg font-medium">Pontuação: {team.score}</span>
-                          {team.is_winner && (
-                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                              Vencedor
-                            </span>
-                          )}
                         </div>
                       </div>
                       <div className="grid grid-cols-1 gap-2">
@@ -444,9 +515,9 @@ export function GameDetails({ game, players, onClose }: GameDetailsProps) {
                             <div key={playerId} className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
                               <div className={cn(
                                 "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium",
-                                positionColors[player.position[0]]
+                                positionColors[Array.isArray(player.position) ? player.position[0] : player.position]
                               )}>
-                                {positionAbbreviations[player.position[0]]}
+                                {positionAbbreviations[Array.isArray(player.position) ? player.position[0] : player.position]}
                               </div>
                               <span className="font-medium">{player.name}</span>
                             </div>

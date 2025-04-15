@@ -30,14 +30,18 @@ const FootballField = ({
       };
     }
     
+    // Encontra o guarda-redes
     const goalkeeper = team.find(p => {
+      if (!p.position) return false;
       const positions = Array.isArray(p.position) ? p.position : [p.position];
-      return positions.includes('Guarda-Redes');
+      return positions.some(pos => pos && typeof pos === 'string' && pos.toLowerCase().includes('guarda-redes'));
     });
 
+    // Filtra os jogadores de campo (excluindo o guarda-redes)
     const fieldPlayers = team.filter(p => {
+      if (!p.position) return true;
       const positions = Array.isArray(p.position) ? p.position : [p.position];
-      return !positions.includes('Guarda-Redes');
+      return !positions.some(pos => pos && typeof pos === 'string' && pos.toLowerCase().includes('guarda-redes'));
     });
 
     return {
@@ -54,13 +58,15 @@ const FootballField = ({
     isTeamA: boolean; 
     className?: string;
   }) => {
-    const playerName = player.nickname || player.name.split(' ')[0];
+    const playerName = player.nickname || (player.name ? player.name.split(' ')[0] : '');
+    const position = Array.isArray(player.position) ? player.position[0] : player.position;
     
     return (
       <div className={`absolute transform -translate-x-1/2 -translate-y-1/2 text-center ${className}`}>
         <div className="relative flex flex-col items-center">
-          <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center ${isTeamA ? 'bg-[#b89333]' : 'bg-[#102e45]'} text-white text-[10px] md:text-xs font-medium border-2 border-white shadow-md hover:scale-110 transition-transform`}>
-            {playerName}
+          <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex flex-col items-center justify-center ${isTeamA ? 'bg-[#b89333]' : 'bg-[#102e45]'} text-white text-[8px] md:text-[10px] font-medium border-2 border-white shadow-md hover:scale-110 transition-transform`}>
+            <span className="font-bold">{playerName}</span>
+            <span className="text-[6px] md:text-[8px] opacity-80">{position}</span>
           </div>
         </div>
       </div>
@@ -79,36 +85,65 @@ const FootballField = ({
                 margin: '0'
               }}
             >
-              {/* Time A */}
+              {/* Time A - Formação 4-2-2 */}
               {teamAFormation.goalkeeper && (
                 <PlayerAvatar 
+                  key={`teamA-goalkeeper-${teamAFormation.goalkeeper.id}`}
                   player={teamAFormation.goalkeeper}
                   isTeamA={true}
-                  className="left-[10%] top-[50%]"
+                  className="left-[15%] top-[50%]"
                 />
               )}
-              {/* Jogadores de campo do Time A */}
-              {teamAFormation.fieldPlayers?.map((player, index) => {
+              {/* Defensores Time A */}
+              {teamAFormation.fieldPlayers?.slice(0, 4).map((player, index) => {
                 const positions = {
-                  0: "left-[20%] top-[30%]",
-                  1: "left-[20%] top-[50%]",
-                  2: "left-[20%] top-[70%]",
-                  3: "left-[35%] top-[30%]",
-                  4: "left-[35%] top-[50%]",
-                  5: "left-[35%] top-[70%]",
-                  6: "left-[70%] top-[40%]",
-                  7: "left-[70%] top-[60%]",
-                  8: "left-[40%] top-[40%]",
-                  9: "left-[40%] top-[60%]",
-                  10: "left-[60%] top-[40%]",
-                  11: "left-[60%] top-[60%]"
+                  0: "left-[25%] top-[20%]",
+                  1: "left-[25%] top-[40%]",
+                  2: "left-[25%] top-[60%]",
+                  3: "left-[25%] top-[80%]"
                 }[index] || "";
 
                 if (!positions) return null;
 
                 return (
                   <PlayerAvatar
-                    key={player.id}
+                    key={`teamA-defender-${player.id}-${index}`}
+                    player={player}
+                    isTeamA={true}
+                    className={positions}
+                  />
+                );
+              })}
+              {/* Meio-campistas Time A */}
+              {teamAFormation.fieldPlayers?.slice(4, 6).map((player, index) => {
+                const positions = {
+                  0: "left-[45%] top-[40%]",
+                  1: "left-[45%] top-[60%]"
+                }[index] || "";
+
+                if (!positions) return null;
+
+                return (
+                  <PlayerAvatar
+                    key={`teamA-midfielder-${player.id}-${index}`}
+                    player={player}
+                    isTeamA={true}
+                    className={positions}
+                  />
+                );
+              })}
+              {/* Atacantes Time A */}
+              {teamAFormation.fieldPlayers?.slice(6, 8).map((player, index) => {
+                const positions = {
+                  0: "left-[65%] top-[40%]",
+                  1: "left-[65%] top-[60%]"
+                }[index] || "";
+
+                if (!positions) return null;
+
+                return (
+                  <PlayerAvatar
+                    key={`teamA-attacker-${player.id}-${index}`}
                     player={player}
                     isTeamA={true}
                     className={positions}
@@ -116,36 +151,65 @@ const FootballField = ({
                 );
               })}
 
-              {/* Time B */}
+              {/* Time B - Formação 4-2-2 */}
               {teamBFormation.goalkeeper && (
                 <PlayerAvatar 
+                  key={`teamB-goalkeeper-${teamBFormation.goalkeeper.id}`}
                   player={teamBFormation.goalkeeper}
                   isTeamA={false}
-                  className="left-[90%] top-[50%]"
+                  className="left-[85%] top-[50%]"
                 />
               )}
-              {/* Jogadores de campo do Time B */}
-              {teamBFormation.fieldPlayers?.map((player, index) => {
+              {/* Defensores Time B */}
+              {teamBFormation.fieldPlayers?.slice(0, 4).map((player, index) => {
                 const positions = {
-                  0: "left-[80%] top-[30%]",
-                  1: "left-[80%] top-[50%]",
-                  2: "left-[80%] top-[70%]",
-                  3: "left-[65%] top-[30%]",
-                  4: "left-[65%] top-[50%]",
-                  5: "left-[65%] top-[70%]",
-                  6: "left-[30%] top-[40%]",
-                  7: "left-[30%] top-[60%]",
-                  8: "left-[60%] top-[40%]",
-                  9: "left-[60%] top-[60%]",
-                  10: "left-[40%] top-[40%]",
-                  11: "left-[40%] top-[60%]"
+                  0: "left-[75%] top-[20%]",
+                  1: "left-[75%] top-[40%]",
+                  2: "left-[75%] top-[60%]",
+                  3: "left-[75%] top-[80%]"
                 }[index] || "";
 
                 if (!positions) return null;
 
                 return (
                   <PlayerAvatar
-                    key={player.id}
+                    key={`teamB-defender-${player.id}-${index}`}
+                    player={player}
+                    isTeamA={false}
+                    className={positions}
+                  />
+                );
+              })}
+              {/* Meio-campistas Time B */}
+              {teamBFormation.fieldPlayers?.slice(4, 6).map((player, index) => {
+                const positions = {
+                  0: "left-[55%] top-[40%]",
+                  1: "left-[55%] top-[60%]"
+                }[index] || "";
+
+                if (!positions) return null;
+
+                return (
+                  <PlayerAvatar
+                    key={`teamB-midfielder-${player.id}-${index}`}
+                    player={player}
+                    isTeamA={false}
+                    className={positions}
+                  />
+                );
+              })}
+              {/* Atacantes Time B */}
+              {teamBFormation.fieldPlayers?.slice(6, 8).map((player, index) => {
+                const positions = {
+                  0: "left-[35%] top-[40%]",
+                  1: "left-[35%] top-[60%]"
+                }[index] || "";
+
+                if (!positions) return null;
+
+                return (
+                  <PlayerAvatar
+                    key={`teamB-attacker-${player.id}-${index}`}
                     player={player}
                     isTeamA={false}
                     className={positions}
